@@ -1,0 +1,13 @@
+# 最小依赖版本 - 只包含运行必需的核心包
+fastapi==0.111.0
+uvicorn==0.30.1
+pydantic==2.7.1
+pydantic-settings==2.10.1
+python-dotenv==1.0.1
+sqlalchemy==2.0.31
+pymysql==1.1.1
+python-multipart==0.0.9
+
+# 如果需要 AI 功能，取消注释以下行
+# openai==1.35.10
+# langchain==2.6

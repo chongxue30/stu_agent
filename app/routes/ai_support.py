@@ -1,6 +1,5 @@
-from fastapi import APIRouter, HTTPException
-from app.services.ai_service import ai_support
-from app.services.ai_service import chat_service
+from fastapi import APIRouter, HTTPException, Query
+from app.services.ai_service import ai_support, chat_service, chat_with_deepseek_service, chat_with_zhipu_service
 
 router = APIRouter()
 
@@ -17,15 +16,41 @@ async def generate_sql_endpoint(question: str):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-# 聊天机器人
+# 聊天机器人 - 支持模型选择
 @router.post("/chat")
-async def chat_endpoint(message: str, session_id: str):
+async def chat_endpoint(
+    message: str, 
+    session_id: str, 
+    model_type: str = Query(default="deepseek", description="模型类型: deepseek 或 zhipu")
+):
     try:
-        # 调用 chat_service 并传递 message 和 session_id
-        result = chat_service(message, session_id)
-        return {"response": result}
+        # 调用 chat_service 并传递 message、session_id 和 model_type
+        result = chat_service(message, session_id, model_type)
+        return {"response": result, "model_type": model_type}
     except HTTPException as e:
         raise e
     except Exception as e:
         # 捕获其他异常并返回 HTTP 错误
+        raise HTTPException(status_code=500, detail=str(e))
+
+# 专门使用 DeepSeek 模型的聊天接口
+@router.post("/chat/deepseek")
+async def chat_deepseek_endpoint(message: str, session_id: str):
+    try:
+        result = chat_with_deepseek_service(message, session_id)
+        return {"response": result, "model_type": "deepseek"}
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# 专门使用智谱 AI 模型的聊天接口
+@router.post("/chat/zhipu")
+async def chat_zhipu_endpoint(message: str, session_id: str):
+    try:
+        result = chat_with_zhipu_service(message, session_id)
+        return {"response": result, "model_type": "zhipu"}
+    except HTTPException as e:
+        raise e
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,0 +1,21 @@
+# 核心依赖
+fastapi==0.111.0
+uvicorn==0.30.1
+pydantic==2.7.1
+pydantic-settings==2.5.2
+python-dotenv==1.0.1
+sqlalchemy==2.0.31
+pymysql==1.1.1
+python-multipart==0.0.9
+
+# AI相关核心依赖
+openai==1.35.10
+langchain==0.2.6
+langchain-openai==0.1.14
+langchain-community==0.2.6
+
+# 可选依赖（根据需要取消注释）
+# torch==2.4.1
+# transformers==4.44.2
+# chromadb==0.5.3
+# sentence-transformers==3.0.1

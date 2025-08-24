@@ -1,0 +1,32 @@
+# PyCharm 性能优化配置
+# 针对已安装的 .venv 虚拟环境优化
+
+# 忽略大型依赖包的索引
+# 这些包通常不需要在IDE中索引，可以显著提升性能
+ignore_packages:
+  - torch
+  - transformers
+  - numpy
+  - pandas
+  - matplotlib
+  - scikit-learn
+  - opencv-python
+  - chromadb
+  - sentence-transformers
+  - jupyter
+  - ipython
+  - gradio
+  - langchain
+  - huggingface_hub
+
+# PyCharm 性能优化设置（针对已安装的虚拟环境）
+# 1. 在 Settings > Project > Python Interpreter 中
+#    确保选择了正确的 .venv 路径
+# 2. 在 Settings > Editor > General > Auto Import 中
+#    关闭 "Add unambiguous imports on the fly"
+# 3. 在 Settings > Appearance & Behavior > System Settings > Synchronization 中
+#    关闭不必要的同步选项
+# 4. 在 Settings > Editor > General > Code Completion 中
+#    减少 "Auto popup in" 的延迟时间
+# 5. 在 Settings > Project > Python Interpreter > Packages 中
+#    可以禁用某些大型包的索引
