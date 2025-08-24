@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     # Database settings
     DATABASE_HOST: str = os.getenv("DATABASE_HOST", "rm-bp18ni4370md7m57dzo.mysql.rds.aliyuncs.com")
     DATABASE_PORT: int = os.getenv("DATABASE_PORT", 3306)
-    DATABASE_NAME: str = os.getenv("DATABASE_NAME", "test_db8")
+    DATABASE_NAME: str = os.getenv("DATABASE_NAME", "stu_agent")
     DATABASE_USER: str = os.getenv("DATABASE_USER", "root")
     DATABASE_PASSWORD: str = os.getenv("DATABASE_PASSWORD", "chongxue=10293X")
 

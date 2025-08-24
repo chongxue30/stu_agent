@@ -1,39 +1,14 @@
-from sqlalchemy.orm import Session
-from app.database import SessionLocal
-from app.models.user import User  # Assuming you have a User model
-from app.services.generate.ai_model import generate_sql_query
-from app.services.chat.chat import chat_with_model, chat_with_deepseek, chat_with_zhipu  # Import the chat functions
+from app.services.chat.chat import chat_with_model, chat_with_deepseek, chat_with_zhipu
 from fastapi import HTTPException
 import traceback
 
-def process_request():
-    # Create a new database session
-    session = SessionLocal()
-    try:
-        # Example query: Get all users
-        users = session.query(User).all()
-        # Process the query results
-        user_data = [{"id": user.id, "name": user.name, "email": user.email} for user in users]
-        return user_data
-    except Exception as e:
-        # Handle exceptions
-        return f"An error occurred: {str(e)}"
-    finally:
-        # Close the session
-        session.close()
-
 def ai_support(question: str):
+    """AI 支持服务"""
     try:
-        result = ai_support_service(question)
-        return result
+        # 这里可以添加具体的AI支持逻辑
+        return f"AI 支持服务收到问题: {question}"
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-def ai_support_service(question: str):
-    # Example usage of the imported function
-    sql_query = generate_sql_query(question)
-    print("Generated SQL Query in ai_service:", sql_query)
-    return sql_query
 
 def chat_service(message: str, session_id: str, model_type: str = 'deepseek'):
     """

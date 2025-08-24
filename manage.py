@@ -27,6 +27,27 @@ def run_server(host="0.0.0.0", port=8000, reload=True):
         log_level="info"
     )
 
+def init_database():
+    """初始化数据库"""
+    print("🗄️ 初始化数据库...")
+    try:
+        from app.init_db import init_database
+        init_database()
+    except Exception as e:
+        print(f"❌ 数据库初始化失败: {str(e)}")
+
+def create_tables():
+    """创建数据库表"""
+    print("🏗️ 创建数据库表...")
+    try:
+        from app.database import create_tables
+        if create_tables():
+            print("✅ 数据库表创建成功")
+        else:
+            print("❌ 数据库表创建失败")
+    except Exception as e:
+        print(f"❌ 创建表失败: {str(e)}")
+
 def run_tests():
     """运行测试"""
     print("🧪 运行测试...")
@@ -45,6 +66,8 @@ def main():
         print("  runserver    启动开发服务器")
         print("  test         运行测试")
         print("  deps         检查依赖")
+        print("  initdb       初始化数据库")
+        print("  createtables 创建数据库表")
         print("  help         显示帮助")
         return
     
@@ -61,12 +84,20 @@ def main():
     elif command == "deps":
         check_dependencies()
     
+    elif command == "initdb":
+        init_database()
+    
+    elif command == "createtables":
+        create_tables()
+    
     elif command == "help":
         print("FastAPI 项目管理脚本")
         print("\n命令:")
         print("  runserver [port]  启动开发服务器 (默认端口: 8000)")
         print("  test              运行测试")
         print("  deps              检查依赖")
+        print("  initdb            初始化数据库")
+        print("  createtables      创建数据库表")
         print("  help              显示帮助")
     
     else:
