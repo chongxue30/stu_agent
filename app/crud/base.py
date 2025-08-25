@@ -2,7 +2,8 @@ from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from app.models.base import Base
+from app.db.session import Base
+from app.schemas.common.response import PageParam
 
 ModelType = TypeVar("ModelType", bound=Base)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
@@ -19,9 +20,12 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db.query(self.model).filter(self.model.id == id).first()
 
     def get_multi(
-        self, db: Session, *, skip: int = 0, limit: int = 100
-    ) -> List[ModelType]:
-        return db.query(self.model).offset(skip).limit(limit).all()
+        self, db: Session, *, page: PageParam
+    ) -> tuple[List[ModelType], int]:
+        query = db.query(self.model)
+        total = query.count()
+        items = query.offset((page.pageNo - 1) * page.pageSize).limit(page.pageSize).all()
+        return items, total
 
     def create(self, db: Session, *, obj_in: CreateSchemaType) -> ModelType:
         obj_in_data = jsonable_encoder(obj_in)

@@ -12,21 +12,15 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = ["*"]
 
     # Database settings
-    DATABASE_HOST: str = "rm-bp18ni4370md7m57dzo.mysql.rds.aliyuncs.com"
+    DATABASE_HOST: str = "localhost"
     DATABASE_PORT: int = 3306
-    DATABASE_NAME: str = "rouyi-vue-pro"
+    DATABASE_NAME: str = "stu_agent"
     DATABASE_USER: str = "root"
-    DATABASE_PASSWORD: str = "chongxue=10293X"
+    DATABASE_PASSWORD: str = ""
 
     # JWT
-    SECRET_KEY: str = "your-secret-key"
+    SECRET_KEY: str = "your-secret-key"  # 请在生产环境中修改
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
-
-    # AI Model settings
-    MODEL_NAME: str = "glm-4-0520"
-    MODEL_TEMPERATURE: float = 0.0
-    MODEL_API_KEY: str = ""
-    MODEL_BASE_URL: str = "https://open.bigmodel.cn/api/paas/v4/"
 
     class Config:
         env_file = ".env"
