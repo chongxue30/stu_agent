@@ -20,7 +20,7 @@ def run_server(host="0.0.0.0", port=8000, reload=True):
     print("按 Ctrl+C 停止服务器")
     
     uvicorn.run(
-        "app.app:app",
+        "main:app",  # 更新为新的入口点
         host=host,
         port=port,
         reload=reload,
@@ -31,8 +31,10 @@ def init_database():
     """初始化数据库"""
     print("🗄️ 初始化数据库...")
     try:
-        from app.init_db import init_database
-        init_database()
+        from app.db.session import engine
+        from app.models.base import Base
+        Base.metadata.create_all(bind=engine)
+        print("✅ 数据库初始化成功")
     except Exception as e:
         print(f"❌ 数据库初始化失败: {str(e)}")
 
@@ -40,11 +42,10 @@ def create_tables():
     """创建数据库表"""
     print("🏗️ 创建数据库表...")
     try:
-        from app.database import create_tables
-        if create_tables():
-            print("✅ 数据库表创建成功")
-        else:
-            print("❌ 数据库表创建失败")
+        from app.db.session import engine
+        from app.models.base import Base
+        Base.metadata.create_all(bind=engine)
+        print("✅ 数据库表创建成功")
     except Exception as e:
         print(f"❌ 创建表失败: {str(e)}")
 

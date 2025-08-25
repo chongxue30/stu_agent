@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from app.database import get_db
+from app.db.session import get_db  # 更新导入路径
 from app.models.user import SystemUser
 from app.utils.password import hash_password, verify_password, generate_default_password
 from app.schemas.user_schema import UserRegisterRequest
@@ -202,4 +202,4 @@ class UserService:
             db.rollback()
             return None
         finally:
-            db.close() 
+            db.close()

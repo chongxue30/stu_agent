@@ -1,4 +1,9 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
+
+from app.api import deps
+from app.core import security
 from app.services.user_service import UserService
 from app.schemas.user_schema import (
     UserLoginRequest, 
@@ -7,29 +12,19 @@ from app.schemas.user_schema import (
     LoginResponse, 
     RegisterResponse,
     ErrorResponse,
-    SuccessResponse
+    SuccessResponse,
+    Token
 )
-from app.models.user import SystemUser
 
-router = APIRouter(prefix="/auth", tags=["认证管理"])
-
-
+router = APIRouter()
 
 @router.post("/login", response_model=LoginResponse)
-async def user_login(
+async def login(
     login_data: UserLoginRequest,
-    request: Request
+    request: Request,
+    db: Session = Depends(deps.get_db)
 ):
-    """
-    用户登录
-    
-    Args:
-        login_data: 登录数据
-        request: 请求对象
-        
-    Returns:
-        登录结果
-    """
+    """用户登录"""
     try:
         # 验证用户
         user = UserService.authenticate_user(login_data.username, login_data.password)
@@ -39,6 +34,9 @@ async def user_login(
                 status_code=401, 
                 detail="用户名或密码错误"
             )
+        
+        # 生成访问令牌
+        access_token = security.create_access_token(user.id)
         
         # 更新登录信息
         client_ip = request.client.host if request.client else "unknown"
@@ -60,7 +58,9 @@ async def user_login(
         return LoginResponse(
             code=200,
             message="登录成功",
-            data=user_response
+            data=user_response,
+            access_token=access_token,
+            token_type="bearer"
         )
         
     except HTTPException:
@@ -70,18 +70,11 @@ async def user_login(
         raise HTTPException(status_code=500, detail="登录失败")
 
 @router.post("/register", response_model=RegisterResponse)
-async def user_register(
-    register_data: UserRegisterRequest
+async def register(
+    register_data: UserRegisterRequest,
+    db: Session = Depends(deps.get_db)
 ):
-    """
-    用户注册
-    
-    Args:
-        register_data: 注册数据
-        
-    Returns:
-        注册结果
-    """
+    """用户注册"""
     try:
         # 创建用户
         new_user = UserService.create_user(register_data)
@@ -114,36 +107,27 @@ async def user_register(
         print(f"注册失败: {str(e)}")
         raise HTTPException(status_code=500, detail="注册失败")
 
+@router.get("/profile/me", response_model=UserResponse)
+async def get_my_profile(
+    current_user = Depends(deps.get_current_active_user)
+):
+    """获取当前用户信息"""
+    return UserResponse.from_orm(current_user)
+
 @router.get("/profile/{user_id}", response_model=UserResponse)
 async def get_user_profile(
-    user_id: int
+    user_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user = Depends(deps.get_current_active_user)
 ):
-    """
-    获取用户信息
-    
-    Args:
-        user_id: 用户ID
-        
-    Returns:
-        用户信息
-    """
+    """获取指定用户信息"""
     try:
         user = UserService.get_user_by_id(user_id)
         
         if not user:
             raise HTTPException(status_code=404, detail="用户不存在")
         
-        return UserResponse(
-            id=user.id,
-            username=user.username,
-            nickname=user.nickname,
-            email=user.email,
-            mobile=user.mobile,
-            avatar=user.avatar,
-            status=user.status,
-            login_date=user.login_date,
-            create_time=user.create_time
-        )
+        return UserResponse.from_orm(user)
         
     except HTTPException:
         raise
@@ -152,10 +136,10 @@ async def get_user_profile(
         raise HTTPException(status_code=500, detail="获取用户信息失败")
 
 @router.post("/create-admin")
-async def create_default_admin():
-    """
-    创建默认管理员账户
-    """
+async def create_default_admin(
+    db: Session = Depends(deps.get_db)
+):
+    """创建默认管理员账户"""
     try:
         UserService.create_default_admin()
         return SuccessResponse(
