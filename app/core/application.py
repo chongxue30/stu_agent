@@ -4,6 +4,7 @@ from app.core.config import settings
 from app.api.api import api_router
 
 def create_app() -> FastAPI:
+    """创建 FastAPI 应用实例"""
     app = FastAPI(
         title=settings.PROJECT_NAME,
         description=settings.PROJECT_DESCRIPTION,
@@ -25,4 +26,5 @@ def create_app() -> FastAPI:
 
     return app
 
+# 创建应用实例
 app = create_app()

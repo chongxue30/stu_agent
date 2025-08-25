@@ -19,31 +19,52 @@ def run_server(host="0.0.0.0", port=8000, reload=True):
     print(f"🔄 热重载: {'开启' if reload else '关闭'}")
     print("按 Ctrl+C 停止服务器")
     
-    uvicorn.run(
-        "main:app",  # 更新为新的入口点
-        host=host,
-        port=port,
-        reload=reload,
-        log_level="info"
-    )
+    if reload:
+        uvicorn.run(
+            "app.core.application:app",
+            host=host,
+            port=port,
+            reload=reload,
+            log_level="info"
+        )
+    else:
+        from app.core.application import app
+        uvicorn.run(
+            app,
+            host=host,
+            port=port,
+            log_level="info"
+        )
 
 def init_database():
     """初始化数据库"""
     print("🗄️ 初始化数据库...")
     try:
-        from app.db.session import engine
-        from app.models.base import Base
+        from app.db.session import engine, Base
+        from app.models import user  # 导入所有模型以确保它们被注册
+        
+        # 删除所有表
+        Base.metadata.drop_all(bind=engine)
+        # 创建所有表
         Base.metadata.create_all(bind=engine)
         print("✅ 数据库初始化成功")
+        
+        # 创建默认管理员账户
+        from app.services.user_service import UserService
+        UserService.create_default_admin()
+        print("✅ 默认管理员账户创建成功")
+        
     except Exception as e:
         print(f"❌ 数据库初始化失败: {str(e)}")
 
 def create_tables():
-    """创建数据库表"""
+    """创建数据库表（不删除现有数据）"""
     print("🏗️ 创建数据库表...")
     try:
-        from app.db.session import engine
-        from app.models.base import Base
+        from app.db.session import engine, Base
+        from app.models import user  # 导入所有模型以确保它们被注册
+        
+        # 只创建不存在的表
         Base.metadata.create_all(bind=engine)
         print("✅ 数据库表创建成功")
     except Exception as e:
