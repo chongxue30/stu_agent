@@ -12,11 +12,11 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = ["*"]
 
     # Database settings
-    DATABASE_HOST: str = "localhost"
+    DATABASE_HOST: str = "rm-bp18ni4370md7m57dzo.mysql.rds.aliyuncs.com"
     DATABASE_PORT: int = 3306
     DATABASE_NAME: str = "stu_agent"
     DATABASE_USER: str = "root"
-    DATABASE_PASSWORD: str = ""
+    DATABASE_PASSWORD: str = "chongxue=10293X"
 
     # JWT
     SECRET_KEY: str = "your-secret-key"  # 请在生产环境中修改
@@ -25,5 +25,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+        # 禁用受保护命名空间检查，避免 model_ 字段的警告
+        protected_namespaces = ()
 
 settings = Settings()

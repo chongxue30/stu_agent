@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.v1.ai import api_key, model, chat_role
+from app.api.api import api_router
 
 def create_app() -> FastAPI:
     app = FastAPI(
@@ -20,7 +21,10 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # Include routers
+    # Include API router (包含认证路由)
+    app.include_router(api_router, prefix=settings.API_V1_STR)
+    
+    # Include AI routers
     app.include_router(api_key.router, prefix=f"{settings.API_V1_STR}/ai")
     app.include_router(model.router, prefix=f"{settings.API_V1_STR}/ai")
     app.include_router(chat_role.router, prefix=f"{settings.API_V1_STR}/ai")
