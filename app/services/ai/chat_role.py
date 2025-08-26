@@ -82,7 +82,7 @@ class ChatRoleService:
         
         # 构建响应，包含模型信息
         role_resp = ChatRoleResp.model_validate(db_role)
-        role_resp.model_name = db_role.model.name if db_role.model else None
+        role_resp.model_name = db_role.ai_model.name if db_role.ai_model else None
         return ResponseModel(data=role_resp)
 
     @staticmethod
@@ -98,7 +98,7 @@ class ChatRoleService:
         role_resps = []
         for r in items:
             role_resp = ChatRoleResp.model_validate(r)
-            role_resp.model_name = r.model.name if r.model else None
+            role_resp.model_name = r.ai_model.name if r.ai_model else None
             role_resps.append(role_resp)
             
         page_result = PageResult(

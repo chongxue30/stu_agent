@@ -58,5 +58,44 @@ class CRUDChatRole(CRUDBase[ChatRole, ChatRoleCreate, ChatRoleUpdate]):
     def soft_delete(self, db: Session, *, id: int) -> ChatRole:
         """软删除聊天角色"""
         return self.soft_remove(db, id=id)
+    
+    def get_by_user_id(self, db: Session, *, user_id: int) -> List[ChatRole]:
+        """根据用户ID获取角色列表"""
+        return db.query(self.model).filter(
+            self.model.user_id == user_id,
+            self.model.deleted == 0
+        ).order_by(self.model.sort.asc(), self.model.create_time.desc()).all()
+    
+    def get_public_roles(self, db: Session) -> List[ChatRole]:
+        """获取公开的角色列表"""
+        return db.query(self.model).filter(
+            self.model.public_status == 1,
+            self.model.status == 0,
+            self.model.deleted == 0
+        ).order_by(self.model.sort.asc(), self.model.create_time.desc()).all()
+    
+    def get_by_category(self, db: Session, *, category: str) -> List[ChatRole]:
+        """根据类别获取角色列表"""
+        return db.query(self.model).filter(
+            self.model.category == category,
+            self.model.status == 0,
+            self.model.deleted == 0
+        ).order_by(self.model.sort.asc()).all()
+    
+    def get_by_model_id(self, db: Session, *, model_id: int) -> List[ChatRole]:
+        """根据模型ID获取角色列表"""
+        return db.query(self.model).filter(
+            self.model.model_id == model_id,
+            self.model.status == 0,
+            self.model.deleted == 0
+        ).order_by(self.model.sort.asc()).all()
+    
+    def get_default_roles(self, db: Session) -> List[ChatRole]:
+        """获取默认角色列表"""
+        return db.query(self.model).filter(
+            self.model.user_id.is_(None),  # 系统默认角色
+            self.model.status == 0,
+            self.model.deleted == 0
+        ).order_by(self.model.sort.asc()).all()
 
 chat_role = CRUDChatRole(ChatRole)

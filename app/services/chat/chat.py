@@ -1,7 +1,7 @@
 from zhipuai import ZhipuAI
 from app.core.config import settings
-from app.aiengine.model import get_chat_openai_model  # 智谱 AI 模型
-from app.aiengine.deepseek_model import get_deepseek_model  # DeepSeek 模型
+from app.engine.model import get_chat_openai_model  # 智谱 AI 模型
+from app.engine.deepseek_model import get_deepseek_model  # DeepSeek 模型
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.messages import HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
