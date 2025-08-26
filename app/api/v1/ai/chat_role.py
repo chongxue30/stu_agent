@@ -60,7 +60,7 @@ def get_category_list(
     """
     获取角色分类列表
     """
-    return ChatRoleService.get_categories(db=db)
+    return ChatRoleService.get_category_list(db=db)
 
 @router.get("/page", response_model=ResponseModel[PageResult[ChatRoleResp]])
 def get_chat_role_page(

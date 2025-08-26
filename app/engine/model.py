@@ -1,5 +1,5 @@
 from langchain_openai import ChatOpenAI
-from app.config.setting import settings
+from app.core.config import settings
 
 def get_chat_openai_model():
     """Initialize and return a ChatOpenAI model using settings."""

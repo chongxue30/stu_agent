@@ -36,8 +36,12 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         items = query.offset((page.pageNo - 1) * page.pageSize).limit(page.pageSize).all()
         return items, total
 
+    def _prepare_create_data(self, obj_in: CreateSchemaType) -> Dict[str, Any]:
+        """准备创建数据，子类可以重写此方法以自定义数据处理"""
+        return jsonable_encoder(obj_in)
+
     def create(self, db: Session, *, obj_in: CreateSchemaType) -> ModelType:
-        obj_in_data = jsonable_encoder(obj_in)
+        obj_in_data = self._prepare_create_data(obj_in)
         db_obj = self.model(**obj_in_data)
         db.add(db_obj)
         db.commit()

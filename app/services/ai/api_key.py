@@ -46,8 +46,7 @@ class ApiKeyService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="API Key not found"
             )
-        # 使用软删除，设置 deleted = 1
-        db_obj = api_key.soft_remove(db, id=id)
+        db_obj = api_key.soft_delete(db, id=id)
         return ResponseModel(data=ApiKeyResp.model_validate(db_obj))
     
     @staticmethod

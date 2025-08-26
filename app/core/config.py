@@ -22,6 +22,20 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "your-secret-key"  # 请在生产环境中修改
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
 
+    # AI Model Settings
+    # DeepSeek 模型配置
+    DEEPSEEK_MODEL_NAME: str = "deepseek-chat"
+    DEEPSEEK_TEMPERATURE: float = 0.7
+    DEEPSEEK_API_KEY: str = "your-deepseek-api-key"
+    DEEPSEEK_BASE_URL: str = "https://api.deepseek.com/v1"
+    DEEPSEEK_MAX_TOKENS: int = 4096
+    
+    # 智谱 AI 模型配置
+    MODEL_NAME: str = "glm-4"
+    MODEL_TEMPERATURE: float = 0.7
+    MODEL_API_KEY: str = "your-zhipu-api-key"
+    MODEL_BASE_URL: str = "https://open.bigmodel.cn/api/paas/v4"
+
     class Config:
         env_file = ".env"
         case_sensitive = True

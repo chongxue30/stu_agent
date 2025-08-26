@@ -66,7 +66,7 @@ class ModelService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Model not found"
             )
-        db_obj = model.remove(db, id=id)
+        db_obj = model.soft_delete(db, id=id)
         return ResponseModel(data=ModelResp.model_validate(db_obj))
 
     @staticmethod

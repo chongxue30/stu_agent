@@ -1,5 +1,6 @@
 from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session
+from sqlalchemy import and_
 from app.crud.base import CRUDBase
 from app.models.ai.api_key import ApiKey
 from app.schemas.ai.api_key import ApiKeyCreate, ApiKeyUpdate, ApiKeyPageReq
@@ -23,5 +24,9 @@ class CRUDApiKey(CRUDBase[ApiKey, ApiKeyCreate, ApiKeyUpdate]):
         total = query.count()
         items = query.offset((page.pageNo - 1) * page.pageSize).limit(page.pageSize).all()
         return items, total
+
+    def soft_delete(self, db: Session, *, id: int) -> ApiKey:
+        """软删除 API Key"""
+        return self.soft_remove(db, id=id)
 
 api_key = CRUDApiKey(ApiKey)

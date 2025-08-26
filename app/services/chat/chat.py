@@ -1,5 +1,5 @@
 from zhipuai import ZhipuAI
-from app.config.setting import settings
+from app.core.config import settings
 from app.aiengine.model import get_chat_openai_model  # 智谱 AI 模型
 from app.aiengine.deepseek_model import get_deepseek_model  # DeepSeek 模型
 from langchain_community.chat_message_histories import ChatMessageHistory

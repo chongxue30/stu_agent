@@ -1,5 +1,5 @@
 from langchain_openai import ChatOpenAI
-from app.config.setting import settings
+from app.core.config import settings
 
 def get_deepseek_model():
     """Initialize and return a DeepSeek model using OpenAI-compatible API."""

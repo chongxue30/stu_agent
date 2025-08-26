@@ -68,7 +68,7 @@ class ChatRoleService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Chat role not found"
             )
-        db_obj = chat_role.remove(db, id=id)
+        db_obj = chat_role.soft_delete(db, id=id)
         return ResponseModel(data=ChatRoleResp.model_validate(db_obj))
 
     @staticmethod
@@ -86,9 +86,9 @@ class ChatRoleService:
         return ResponseModel(data=role_resp)
 
     @staticmethod
-    def get_categories(db: Session) -> ResponseModel[List[str]]:
+    def get_category_list(db: Session) -> ResponseModel[List[str]]:
         """获取所有角色分类"""
-        return ResponseModel(data=chat_role.get_categories(db))
+        return ResponseModel(data=chat_role.get_category_list(db))
 
     @staticmethod
     def get_chat_role_page(db: Session, page: ChatRolePageReq) -> ResponseModel[PageResult[ChatRoleResp]]:
