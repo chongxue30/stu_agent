@@ -39,9 +39,19 @@ def delete_api_key(
     db: Session = Depends(get_db)
 ):
     """
-    删除 API 密钥
+    删除 API 密钥（软删除，设置 deleted = True）
     """
     return ApiKeyService.delete_api_key(db=db, id=id)
+
+@router.post("/restore/{id}", response_model=ResponseModel[ApiKeyResp])
+def restore_api_key(
+    id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    恢复已删除的 API 密钥（设置 deleted = False）
+    """
+    return ApiKeyService.restore_api_key(db=db, id=id)
 
 @router.get("/get/{id}", response_model=ResponseModel[ApiKeyResp])
 def get_api_key(

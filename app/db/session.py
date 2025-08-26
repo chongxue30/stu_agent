@@ -11,7 +11,7 @@ def get_mysql_uri():
 # Create synchronous engine
 engine = create_engine(
     get_mysql_uri(),
-    echo=True,
+    echo=False,  # 关闭 SQL 日志
     pool_pre_ping=True,
     pool_recycle=3600
 )

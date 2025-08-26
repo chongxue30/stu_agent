@@ -6,13 +6,13 @@ from app.schemas.ai.api_key import ApiKeyCreate, ApiKeyUpdate, ApiKeyPageReq
 
 class CRUDApiKey(CRUDBase[ApiKey, ApiKeyCreate, ApiKeyUpdate]):
     def get_by_name(self, db: Session, *, name: str) -> Optional[ApiKey]:
-        return db.query(ApiKey).filter(ApiKey.name == name).first()
+        return db.query(ApiKey).filter(ApiKey.name == name, ApiKey.deleted == 0).first()
     
     def get_multi_by_status(self, db: Session, *, status: int) -> List[ApiKey]:
-        return db.query(ApiKey).filter(ApiKey.status == status).all()
+        return db.query(ApiKey).filter(ApiKey.status == status, ApiKey.deleted == 0).all()
     
     def get_page(self, db: Session, *, page: ApiKeyPageReq) -> Tuple[List[ApiKey], int]:
-        query = db.query(ApiKey)
+        query = db.query(ApiKey).filter(ApiKey.deleted == 0)
         if page.name:
             query = query.filter(ApiKey.name.like(f"%{page.name}%"))
         if page.platform:

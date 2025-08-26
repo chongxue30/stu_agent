@@ -46,7 +46,21 @@ class ApiKeyService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="API Key not found"
             )
-        db_obj = api_key.remove(db, id=id)
+        # 使用软删除，设置 deleted = 1
+        db_obj = api_key.soft_remove(db, id=id)
+        return ResponseModel(data=ApiKeyResp.model_validate(db_obj))
+    
+    @staticmethod
+    def restore_api_key(db: Session, id: int) -> ResponseModel[ApiKeyResp]:
+        """恢复已删除的 API 密钥"""
+        db_api_key = api_key.get(db, id=id)
+        if not db_api_key:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="API Key not found"
+            )
+        # 恢复已删除的记录
+        db_obj = api_key.restore(db, id=id)
         return ResponseModel(data=ApiKeyResp.model_validate(db_obj))
 
     @staticmethod

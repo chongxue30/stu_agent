@@ -17,12 +17,21 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.model = model
 
     def get(self, db: Session, id: Any) -> Optional[ModelType]:
-        return db.query(self.model).filter(self.model.id == id).first()
+        """获取单个记录（排除已删除的）"""
+        query = db.query(self.model).filter(self.model.id == id)
+        # 如果模型有 deleted 字段，则过滤掉已删除的记录
+        if hasattr(self.model, 'deleted'):
+            query = query.filter(self.model.deleted == 0)
+        return query.first()
 
     def get_multi(
         self, db: Session, *, page: PageParam
     ) -> tuple[List[ModelType], int]:
+        """获取分页记录（排除已删除的）"""
         query = db.query(self.model)
+        # 如果模型有 deleted 字段，则过滤掉已删除的记录
+        if hasattr(self.model, 'deleted'):
+            query = query.filter(self.model.deleted == 0)
         total = query.count()
         items = query.offset((page.pageNo - 1) * page.pageSize).limit(page.pageSize).all()
         return items, total
@@ -56,7 +65,75 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db_obj
 
     def remove(self, db: Session, *, id: int) -> ModelType:
+        """物理删除"""
         obj = db.query(self.model).get(id)
         db.delete(obj)
         db.commit()
+        return obj
+    
+    def soft_remove(self, db: Session, *, id: int) -> ModelType:
+        """软删除 - 设置 deleted = 1"""
+        obj = db.query(self.model).filter(self.model.id == id).first()
+        
+        if obj and hasattr(obj, 'deleted'):
+            # 使用 1 而不是 True，因为 MySQL Boolean 实际上是 TINYINT
+            obj.deleted = 1
+            
+            if hasattr(obj, 'updater'):
+                obj.updater = "system"
+            
+            if hasattr(obj, 'update_time'):
+                from sqlalchemy.sql import func
+                obj.update_time = func.now()
+            
+            # 强制更新 deleted 字段
+            try:
+                from sqlalchemy import text
+                # 表名不能参数化，必须直接写在 SQL 中
+                update_sql = text(f"UPDATE {obj.__tablename__} SET deleted = :deleted, updater = :updater, update_time = NOW() WHERE id = :id")
+                db.execute(update_sql, {
+                    'deleted': 1,
+                    'updater': 'system',
+                    'id': obj.id
+                })
+            except Exception as e:
+                raise Exception(f"软删除失败: {str(e)}")
+            
+            db.add(obj)
+            db.commit()
+            db.refresh(obj)
+        
+        return obj
+    
+    def restore(self, db: Session, *, id: int) -> ModelType:
+        """恢复已删除的记录 - 设置 deleted = 0"""
+        obj = db.query(self.model).filter(self.model.id == id).first()
+        if obj and hasattr(obj, 'deleted'):
+            # 使用 0 而不是 False，因为 MySQL Boolean 实际上是 TINYINT
+            obj.deleted = 0
+            
+            if hasattr(obj, 'updater'):
+                obj.updater = "system"
+            
+            if hasattr(obj, 'update_time'):
+                from sqlalchemy.sql import func
+                obj.update_time = func.now()
+            
+            # 强制更新 deleted 字段
+            try:
+                from sqlalchemy import text
+                # 表名不能参数化，必须直接写在 SQL 中
+                update_sql = text(f"UPDATE {obj.__tablename__} SET deleted = :deleted, updater = :updater, update_time = NOW() WHERE id = :id")
+                db.execute(update_sql, {
+                    'deleted': 0,
+                    'updater': 'system',
+                    'id': obj.id
+                })
+            except Exception as e:
+                raise Exception(f"恢复删除失败: {str(e)}")
+            
+            db.add(obj)
+            db.commit()
+            db.refresh(obj)
+        
         return obj
