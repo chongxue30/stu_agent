@@ -29,9 +29,9 @@ class ChatRole(Base):
     tenant_id = Column(BigInteger, nullable=False, default=0, comment="租户编号")
     
     # 关联关系
-    conversations = relationship("ChatConversation", foreign_keys="ChatConversation.role_id", back_populates="role")
-    messages = relationship("ChatMessage", foreign_keys="ChatMessage.role_id", back_populates="role")
-    ai_model = relationship("Model", foreign_keys=[model_id])
+    conversations = relationship("ChatConversation", back_populates="role", lazy="dynamic")
+    messages = relationship("ChatMessage", back_populates="role", lazy="dynamic")
+    ai_model = relationship("Model", foreign_keys=[model_id], lazy="joined")
     
     def __repr__(self):
         return f"<ChatRole(id={self.id}, name='{self.name}', category='{self.category}')>"
@@ -39,7 +39,7 @@ class ChatRole(Base):
     def to_dict(self):
         return {
             'id': self.id,
-            'user_id': self.user_id,
+            'userId': self.user_id,
             'model_id': self.model_id,
             'name': self.name,
             'avatar': self.avatar,
@@ -55,7 +55,7 @@ class ChatRole(Base):
             'create_time': self.create_time.isoformat() if self.create_time else None,
             'updater': self.updater,
             'update_time': self.update_time.isoformat() if self.update_time else None,
-            'deleted': self.deleted,
+            'deleted': self.deleted == b'\x01' if isinstance(self.deleted, bytes) else bool(self.deleted) if self.deleted is not None else False,
             'tenant_id': self.tenant_id
         }
     

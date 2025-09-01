@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.crud.base import CRUDBase
 from app.models.ai.chat_message import ChatMessage
 from app.schemas.ai.chat_message import ChatMessageCreate, ChatMessageUpdate
+from sqlalchemy import func
 
 class CRUDChatMessage(CRUDBase[ChatMessage, ChatMessageCreate, ChatMessageUpdate]):
     
@@ -33,7 +34,20 @@ class CRUDChatMessage(CRUDBase[ChatMessage, ChatMessageCreate, ChatMessageUpdate
             self.model.conversation_id == conversation_id,
             self.model.deleted == 0
         ).order_by(self.model.create_time.desc()).first()
-    
+
+    def get_message_count_by_conversation_ids(self, db: Session, conversation_ids: List[int]) -> dict[int, int]:
+        """获取指定对话ID列表的消息数量"""
+        if not conversation_ids:
+            return {}
+        
+        # 使用 group_by 和 func.count 统计每个对话的消息数量
+        counts = db.query(self.model.conversation_id, func.count(self.model.id)).filter(
+            self.model.conversation_id.in_(conversation_ids),
+            self.model.deleted == 0
+        ).group_by(self.model.conversation_id).all()
+        
+        return {conversation_id: count for conversation_id, count in counts}
+
     def create_user_message(self, db: Session, *, conversation_id: int, user_id: int, 
                            content: str, model_id: int, model: str, role_id: Optional[int] = None) -> ChatMessage:
         """创建用户消息"""

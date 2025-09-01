@@ -8,9 +8,12 @@ from app.models.ai.api_key import ApiKey
 
 class ApiKeyService:
     @staticmethod
-    def create_api_key(db: Session, api_key_in: ApiKeyCreate) -> ResponseModel[ApiKeyResp]:
-        # 检查名称是否已存在
-        db_api_key = api_key.get_by_name(db, name=api_key_in.name)
+    def create_api_key(db: Session, api_key_in: ApiKeyCreate, user_id: int) -> ResponseModel[ApiKeyResp]:
+        # 设置当前用户ID
+        api_key_in.user_id = user_id
+        
+        # 检查名称是否已存在（对于同一用户）
+        db_api_key = api_key.get_by_name_and_user(db, name=api_key_in.name, user_id=user_id)
         if db_api_key:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -20,7 +23,7 @@ class ApiKeyService:
         return ResponseModel(data=ApiKeyResp.model_validate(db_obj))
 
     @staticmethod
-    def update_api_key(db: Session, api_key_in: ApiKeyUpdate) -> ResponseModel[ApiKeyResp]:
+    def update_api_key(db: Session, api_key_in: ApiKeyUpdate, user_id: int) -> ResponseModel[ApiKeyResp]:
         # 检查是否存在
         db_api_key = api_key.get(db, id=api_key_in.id)
         if not db_api_key:
@@ -28,8 +31,8 @@ class ApiKeyService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="API Key not found"
             )
-        # 检查名称是否已存在（排除自己）
-        name_exists = api_key.get_by_name(db, name=api_key_in.name)
+        # 检查名称是否已存在（排除自己，对于同一用户）
+        name_exists = api_key.get_by_name_and_user(db, name=api_key_in.name, user_id=user_id)
         if name_exists and name_exists.id != api_key_in.id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -39,7 +42,7 @@ class ApiKeyService:
         return ResponseModel(data=ApiKeyResp.model_validate(db_obj))
 
     @staticmethod
-    def delete_api_key(db: Session, id: int) -> ResponseModel[ApiKeyResp]:
+    def delete_api_key(db: Session, id: int, user_id: int) -> ResponseModel[ApiKeyResp]:
         db_api_key = api_key.get(db, id=id)
         if not db_api_key:
             raise HTTPException(
@@ -50,7 +53,7 @@ class ApiKeyService:
         return ResponseModel(data=ApiKeyResp.model_validate(db_obj))
     
     @staticmethod
-    def restore_api_key(db: Session, id: int) -> ResponseModel[ApiKeyResp]:
+    def restore_api_key(db: Session, id: int, user_id: int) -> ResponseModel[ApiKeyResp]:
         """恢复已删除的 API 密钥"""
         db_api_key = api_key.get(db, id=id)
         if not db_api_key:
@@ -63,7 +66,7 @@ class ApiKeyService:
         return ResponseModel(data=ApiKeyResp.model_validate(db_obj))
 
     @staticmethod
-    def get_api_key(db: Session, id: int) -> ResponseModel[ApiKeyResp]:
+    def get_api_key(db: Session, id: int, user_id: int) -> ResponseModel[ApiKeyResp]:
         db_api_key = api_key.get(db, id=id)
         if not db_api_key:
             raise HTTPException(
@@ -73,13 +76,13 @@ class ApiKeyService:
         return ResponseModel(data=ApiKeyResp.model_validate(db_api_key))
 
     @staticmethod
-    def get_api_keys_by_status(db: Session, status: int) -> ResponseModel[List[ApiKeyResp]]:
-        items = api_key.get_multi_by_status(db, status=status)
+    def get_api_keys_by_status(db: Session, status: int, user_id: int) -> ResponseModel[List[ApiKeyResp]]:
+        items = api_key.get_multi_by_status(db, status=status, user_id=user_id)
         return ResponseModel(data=[ApiKeyResp.model_validate(item) for item in items])
 
     @staticmethod
-    def get_api_key_page(db: Session, page: ApiKeyPageReq) -> ResponseModel[PageResult[ApiKeyResp]]:
-        items, total = api_key.get_page(db, page=page)
+    def get_api_key_page(db: Session, page: ApiKeyPageReq, user_id: int) -> ResponseModel[PageResult[ApiKeyResp]]:
+        items, total = api_key.get_page(db, page=page, user_id=user_id)
         page_result = PageResult(
             list=[ApiKeyResp.model_validate(item) for item in items],
             total=total,

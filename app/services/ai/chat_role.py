@@ -9,9 +9,12 @@ from app.models.ai.chat_role import ChatRole
 
 class ChatRoleService:
     @staticmethod
-    def create_chat_role(db: Session, role_in: ChatRoleCreate) -> ResponseModel[ChatRoleResp]:
+    def create_chat_role(db: Session, role_in: ChatRoleCreate, user_id: int) -> ResponseModel[ChatRoleResp]:
+        # 设置当前用户ID
+        role_in.user_id = user_id
+        
         # 检查名称是否已存在（对于同一用户）
-        db_role = chat_role.get_by_name_and_user(db, name=role_in.name, user_id=role_in.user_id)
+        db_role = chat_role.get_by_name_and_user(db, name=role_in.name, user_id=user_id)
         if db_role:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -31,7 +34,7 @@ class ChatRoleService:
         return ResponseModel(data=ChatRoleResp.model_validate(db_obj))
 
     @staticmethod
-    def update_chat_role(db: Session, role_in: ChatRoleUpdate) -> ResponseModel[ChatRoleResp]:
+    def update_chat_role(db: Session, role_in: ChatRoleUpdate, user_id: int) -> ResponseModel[ChatRoleResp]:
         # 检查是否存在
         db_role = chat_role.get(db, id=role_in.id)
         if not db_role:
@@ -41,7 +44,7 @@ class ChatRoleService:
             )
         
         # 检查名称是否已存在（对于同一用户，排除自己）
-        name_exists = chat_role.get_by_name_and_user(db, name=role_in.name, user_id=role_in.user_id)
+        name_exists = chat_role.get_by_name_and_user(db, name=role_in.name, user_id=user_id)
         if name_exists and name_exists.id != role_in.id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -61,7 +64,7 @@ class ChatRoleService:
         return ResponseModel(data=ChatRoleResp.model_validate(db_obj))
 
     @staticmethod
-    def delete_chat_role(db: Session, id: int) -> ResponseModel[ChatRoleResp]:
+    def delete_chat_role(db: Session, id: int, user_id: int) -> ResponseModel[ChatRoleResp]:
         db_role = chat_role.get(db, id=id)
         if not db_role:
             raise HTTPException(
@@ -72,7 +75,7 @@ class ChatRoleService:
         return ResponseModel(data=ChatRoleResp.model_validate(db_obj))
 
     @staticmethod
-    def get_chat_role(db: Session, id: int) -> ResponseModel[ChatRoleResp]:
+    def get_chat_role(db: Session, id: int, user_id: int) -> ResponseModel[ChatRoleResp]:
         db_role = chat_role.get(db, id=id)
         if not db_role:
             raise HTTPException(
@@ -91,7 +94,7 @@ class ChatRoleService:
         return ResponseModel(data=chat_role.get_category_list(db))
 
     @staticmethod
-    def get_chat_role_page(db: Session, page: ChatRolePageReq) -> ResponseModel[PageResult[ChatRoleResp]]:
+    def get_chat_role_page(db: Session, page: ChatRolePageReq, user_id: int) -> ResponseModel[PageResult[ChatRoleResp]]:
         items, total = chat_role.get_page(db, page=page)
         
         # 构建响应列表，包含模型信息

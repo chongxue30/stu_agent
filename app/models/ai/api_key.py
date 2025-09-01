@@ -6,6 +6,7 @@ class ApiKey(Base):
     __tablename__ = "ai_api_key"
     
     id = Column(BigInteger, primary_key=True, autoincrement=True, comment="编号")
+    user_id = Column(BigInteger, nullable=False, comment="用户编号")
     name = Column(String(255), nullable=False, comment="名称")
     api_key = Column(String(1024), nullable=False, comment="密钥")
     platform = Column(String(255), nullable=False, comment="平台")

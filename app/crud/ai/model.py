@@ -9,16 +9,21 @@ class CRUDModel(CRUDBase[Model, ModelCreate, ModelUpdate]):
     def get_by_name(self, db: Session, *, name: str) -> Optional[Model]:
         return db.query(Model).filter(Model.name == name, Model.deleted == 0).first()
     
+    def get_by_name_and_user(self, db: Session, *, name: str, user_id: int) -> Optional[Model]:
+        return db.query(Model).filter(Model.name == name, Model.user_id == user_id, Model.deleted == 0).first()
+    
     def get_multi_by_type_and_status(
-        self, db: Session, *, type: int, status: Optional[int] = None
+        self, db: Session, *, type: int, status: Optional[int] = None, user_id: int = None
     ) -> List[Model]:
         conditions = [Model.type == type, Model.deleted == 0]
         if status is not None:
             conditions.append(Model.status == status)
+        if user_id is not None:
+            conditions.append(Model.user_id == user_id)
         return db.query(Model).filter(and_(*conditions)).order_by(Model.sort.desc()).all()
     
-    def get_page(self, db: Session, *, page: ModelPageReq) -> Tuple[List[Model], int]:
-        query = db.query(Model).filter(Model.deleted == 0)
+    def get_page(self, db: Session, *, page: ModelPageReq, user_id: int) -> Tuple[List[Model], int]:
+        query = db.query(Model).filter(Model.deleted == 0, Model.user_id == user_id)
         if page.name:
             query = query.filter(Model.name.like(f"%{page.name}%"))
         if page.platform:

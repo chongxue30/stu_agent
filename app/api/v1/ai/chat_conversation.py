@@ -1,19 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.session import get_db
+from app.api.deps import get_current_user_id
 from app.services.ai.chat_conversation import ChatConversationService
 from app.schemas.ai.chat_conversation import (
-    ChatConversationCreate, ChatConversationUpdate, ChatConversationPageReq, ChatConversationResp
+    ChatConversationCreate, ChatConversationUpdate, ChatConversationPageReq, ChatConversationResp, ChatConversationSimpleResp
 )
 from app.schemas.common.response import ResponseModel, PageResult
 from typing import List
 
 router = APIRouter(prefix="/chat-conversation", tags=["AI聊天对话管理"])
-
-# 模拟用户ID（实际项目中应该从JWT token获取）
-def get_current_user_id() -> int:
-    # TODO: 从JWT token获取用户ID
-    return 1
 
 @router.post("/create", response_model=ResponseModel[int])
 def create_conversation(
@@ -51,12 +47,12 @@ def get_conversation(
     """获取单个对话"""
     return ChatConversationService.get_conversation(db=db, id=id, user_id=user_id)
 
-@router.get("/list", response_model=ResponseModel[List[ChatConversationResp]])
-def get_conversation_list(
+@router.get("/list", response_model=ResponseModel[List[ChatConversationSimpleResp]], summary="获得我的聊天对话列表")
+def get_my_chat_conversation_list(
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user_id)
 ):
-    """获取用户的对话列表"""
+    """获得当前登录用户的聊天对话列表"""
     return ChatConversationService.get_conversation_list(db=db, user_id=user_id)
 
 @router.post("/toggle-pin/{id}", response_model=ResponseModel[bool])

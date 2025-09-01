@@ -47,3 +47,9 @@ def get_current_active_user(
     if not current_user.status:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
+
+def get_current_user_id(
+    current_user: SystemUser = Depends(get_current_user)
+) -> int:
+    """获取当前用户ID"""
+    return current_user.id

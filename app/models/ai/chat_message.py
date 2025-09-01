@@ -28,9 +28,9 @@ class ChatMessage(Base):
     tenant_id = Column(BigInteger, comment="租户编号")
     
     # 关联关系
-    conversation = relationship("ChatConversation", foreign_keys=[conversation_id], back_populates="messages")
-    role = relationship("ChatRole", foreign_keys=[role_id])
-    ai_model = relationship("Model", foreign_keys=[model_id])
+    conversation = relationship("ChatConversation", back_populates="messages", lazy="joined")
+    role = relationship("ChatRole", foreign_keys=[role_id], lazy="joined")
+    ai_model = relationship("Model", foreign_keys=[model_id], lazy="joined")
     
     def __repr__(self):
         return f"<ChatMessage(id={self.id}, type='{self.type}', conversation_id={self.conversation_id})>"
@@ -52,7 +52,7 @@ class ChatMessage(Base):
             'create_time': self.create_time.isoformat() if self.create_time else None,
             'updater': self.updater,
             'update_time': self.update_time.isoformat() if self.update_time else None,
-            'deleted': self.deleted,
+            'deleted': self.deleted == b'\x01' if isinstance(self.deleted, bytes) else bool(self.deleted) if self.deleted is not None else False,
             'tenant_id': self.tenant_id
         }
     

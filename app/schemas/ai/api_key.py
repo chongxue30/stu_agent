@@ -8,6 +8,7 @@ class ApiKeyBase(BaseModel):
     platform: str = Field(..., description="平台")
     url: Optional[str] = Field(None, description="自定义 API 地址")
     status: int = Field(..., description="状态")
+    user_id: Optional[int] = Field(None, description="用户ID")
 
 class ApiKeyCreate(ApiKeyBase):
     pass

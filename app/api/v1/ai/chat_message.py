@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.session import get_db
+from app.api.deps import get_current_user_id
 from app.services.ai.chat_message import ChatMessageService
 from app.schemas.ai.chat_message import (
     ChatMessageCreate, ChatMessageUpdate, ChatMessagePageReq, ChatMessageSendReq, ChatMessageSendResp
@@ -11,11 +12,6 @@ from fastapi.responses import StreamingResponse
 import json
 
 router = APIRouter(prefix="/chat-message", tags=["AI聊天消息管理"])
-
-# 模拟用户ID（实际项目中应该从JWT token获取）
-def get_current_user_id() -> int:
-    # TODO: 从JWT token获取用户ID
-    return 1
 
 @router.post("/send", response_model=ResponseModel[ChatMessageSendResp])
 def send_message(

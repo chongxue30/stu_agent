@@ -22,9 +22,9 @@ class PageResult(BaseModel, Generic[DataT]):
 class BaseResp(BaseModel):
     id: int
     creator: Optional[str] = None
-    create_time: datetime
+    create_time: Optional[datetime] = None
     updater: Optional[str] = None
-    update_time: datetime
+    update_time: Optional[datetime] = None
     deleted: bool = False
     tenant_id: int = 0
 

@@ -2,6 +2,7 @@ from sqlalchemy import Column, BigInteger, String, Integer, DateTime, Boolean, D
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.db.session import Base
+from datetime import datetime
 
 class ChatConversation(Base):
     __tablename__ = "ai_chat_conversation"
@@ -28,29 +29,32 @@ class ChatConversation(Base):
     tenant_id = Column(BigInteger, comment="租户编号")
     
     # 关联关系
-    messages = relationship("ChatMessage", foreign_keys="ChatMessage.conversation_id", back_populates="conversation")
-    role = relationship("ChatRole", foreign_keys=[role_id])
-    ai_model = relationship("Model", foreign_keys=[model_id])
+    messages = relationship("ChatMessage", back_populates="conversation", lazy="dynamic")
+    role = relationship("ChatRole", foreign_keys=[role_id], lazy="joined")
+    ai_model = relationship("Model", foreign_keys=[model_id], lazy="joined")
     
     def __repr__(self):
         return f"<ChatConversation(id={self.id}, title='{self.title}', user_id={self.user_id})>"
     
     def to_dict(self):
         return {
-            'id': self.id,
+            'id': str(self.id),
             'user_id': self.user_id,
-            'role_id': self.role_id,
             'title': self.title,
+            'pinned': self.pinned,
+            'role_id': self.role_id,
             'model_id': self.model_id,
             'model': self.model,
-            'pinned': self.pinned,
-            'pinned_time': self.pinned_time.isoformat() if self.pinned_time else None,
+            'model_name': self.ai_model.name if self.ai_model else None,
             'system_message': self.system_message,
             'temperature': self.temperature,
             'max_tokens': self.max_tokens,
             'max_contexts': self.max_contexts,
+            'create_time': int(self.create_time.timestamp() * 1000) if self.create_time else None,
+            'role_avatar': self.role.avatar if self.role else None,
+            'role_name': self.role.name if self.role else None,
+            'message_count': None, # 初始设置为 None，后续在 service 层填充
             'creator': self.creator,
-            'create_time': self.create_time.isoformat() if self.create_time else None,
             'updater': self.updater,
             'update_time': self.update_time.isoformat() if self.update_time else None,
             'deleted': self.deleted,

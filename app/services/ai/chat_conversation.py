@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.crud.ai.chat_conversation import chat_conversation
 from app.crud.ai.chat_role import chat_role
 from app.crud.ai.model import model
+from app.crud.ai.chat_message import chat_message
 from app.schemas.ai.chat_conversation import (
     ChatConversationCreate, ChatConversationUpdate, ChatConversationPageReq, ChatConversationSimpleResp, ChatConversationResp
 )
@@ -97,7 +98,18 @@ class ChatConversationService:
     def get_conversation_list(db: Session, user_id: int) -> ResponseModel[List[ChatConversationSimpleResp]]:
         """获取用户的对话列表"""
         conversations = chat_conversation.get_by_user_id(db, user_id=user_id)
-        conversation_resps = [ChatConversationSimpleResp.model_validate(conv.to_dict()) for conv in conversations]
+        
+        # 获取所有对话的ID
+        conversation_ids = [conv.id for conv in conversations]
+        # 获取消息数量映射
+        message_counts = chat_message.get_message_count_by_conversation_ids(db, conversation_ids)
+        
+        conversation_resps = []
+        for conv in conversations:
+            conv_dict = conv.to_dict()
+            conv_dict['messageCount'] = message_counts.get(conv.id, 0)
+            conversation_resps.append(ChatConversationSimpleResp.model_validate(conv_dict))
+
         return ResponseModel(data=conversation_resps)
     
     @staticmethod

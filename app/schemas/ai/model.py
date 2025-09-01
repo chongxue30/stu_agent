@@ -5,6 +5,7 @@ from app.schemas.common.response import BaseResp, PageParam
 class ModelBase(BaseModel):
     key_id: int = Field(..., description="API 密钥编号")
     name: str = Field(..., description="模型名字")
+    user_id: Optional[int] = Field(None, description="用户编号")
     model: str = Field(..., description="模型标识")
     platform: str = Field(..., description="模型平台")
     type: int = Field(..., description="模型类型")
