@@ -5,6 +5,7 @@ from app.schemas.common.response import BaseResp, PageParam
 class ChatMessageBase(BaseModel):
     conversation_id: int = Field(..., description="对话编号")
     reply_id: Optional[int] = Field(None, description="回复编号")
+    user_id: int = Field(..., description="用户编号")
     role_id: Optional[int] = Field(None, description="角色编号")
     type: str = Field(..., description="消息类型")
     model: str = Field(..., description="模型标识")

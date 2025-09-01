@@ -52,14 +52,16 @@ class ChatService:
                     message=user_message,
                     session_id=str(conversation_id),
                     language='中文',
-                    model_type='deepseek'
+                    model_type='deepseek',
+                    api_key=db_api_key.api_key # 传递 API 密钥
                 )
             else:
                 response = chat_with_model(
                     message=user_message,
                     session_id=str(conversation_id),
                     language='中文',
-                    model_type='zhipu'
+                    model_type='zhipu',
+                    api_key=db_api_key.api_key # 传递 API 密钥
                 )
             
             return response
@@ -128,14 +130,16 @@ class ChatService:
                     message=user_message,
                     session_id=str(conversation_id),
                     language='中文',
-                    model_type='deepseek'
+                    model_type='deepseek',
+                    api_key=db_api_key.api_key # 传递 API 密钥
                 )
             else:
                 response = chat_with_model(
                     message=user_message,
                     session_id=str(conversation_id),
                     language='中文',
-                    model_type='zhipu'
+                    model_type='zhipu',
+                    api_key=db_api_key.api_key # 传递 API 密钥
                 )
             
             # 模拟流式响应

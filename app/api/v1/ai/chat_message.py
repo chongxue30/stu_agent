@@ -4,7 +4,7 @@ from app.db.session import get_db
 from app.api.deps import get_current_user_id
 from app.services.ai.chat_message import ChatMessageService
 from app.schemas.ai.chat_message import (
-    ChatMessageCreate, ChatMessageUpdate, ChatMessagePageReq, ChatMessageSendReq, ChatMessageSendResp
+    ChatMessageCreate, ChatMessageUpdate, ChatMessagePageReq, ChatMessageSendReq, ChatMessageSendResp, ChatMessageResp
 )
 from app.schemas.common.response import ResponseModel, PageResult
 from typing import List
@@ -107,7 +107,7 @@ def send_message_stream(
         }
     )
 
-@router.get("/list/{conversation_id}", response_model=ResponseModel[List[ChatMessageSendResp]])
+@router.get("/list/{conversation_id}", response_model=ResponseModel[List[ChatMessageResp]])
 def get_message_list(
     conversation_id: int,
     limit: int = 50,
@@ -126,7 +126,7 @@ def delete_message(
     """删除消息"""
     return ChatMessageService.delete_message(db=db, id=id, user_id=user_id)
 
-@router.get("/page", response_model=ResponseModel[PageResult[ChatMessageSendResp]])
+@router.get("/page", response_model=ResponseModel[PageResult[ChatMessageResp]])
 def get_message_page(
     page: ChatMessagePageReq = Depends(),
     db: Session = Depends(get_db),

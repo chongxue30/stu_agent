@@ -1,5 +1,5 @@
 from typing import Generic, Optional, TypeVar, List
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 
 DataT = TypeVar("DataT")
@@ -26,7 +26,7 @@ class BaseResp(BaseModel):
     updater: Optional[str] = None
     update_time: Optional[datetime] = None
     deleted: bool = False
-    tenant_id: int = 0
+    tenant_id: Optional[int] = Field(0, description="租户编号")
 
     class Config:
         from_attributes = True

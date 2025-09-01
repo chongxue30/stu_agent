@@ -50,7 +50,7 @@ do_message_deepseek = RunnableWithMessageHistory(
     input_messages_key='my_msg'  # 每次聊天时候发送msg的key
 )
 
-def chat_with_model(message: str, session_id: str, language: str = '中文', model_type: str = 'deepseek'):
+def chat_with_model(message: str, session_id: str, language: str = '中文', model_type: str = 'deepseek', api_key: str = None):
     """
     聊天函数，支持选择不同的模型
     
@@ -59,17 +59,31 @@ def chat_with_model(message: str, session_id: str, language: str = '中文', mod
         session_id: 会话ID
         language: 语言
         model_type: 模型类型 ('deepseek' 或 'zhipu')
+        api_key: API 密钥
     """
     config = {'configurable': {'session_id': session_id}}
     
     try:
         # 根据模型类型选择对应的处理链
         if model_type.lower() == 'deepseek':
-            do_message = do_message_deepseek
+            model_instance = get_deepseek_model(api_key=api_key)
             print(f"使用 DeepSeek 模型处理消息: {message}")
         else:
-            do_message = do_message_zhipu
+            model_instance = get_chat_openai_model(api_key=api_key)
             print(f"使用智谱 AI 模型处理消息: {message}")
+        
+        # 重新创建链，使用新的模型实例
+        current_prompt_template = ChatPromptTemplate.from_messages([
+            ('system', f'你是一个乐于助人的助手。用{language}尽你所能回答所有问题。'),
+            MessagesPlaceholder(variable_name='my_msg')
+        ])
+        current_chain = current_prompt_template | model_instance
+        
+        do_message = RunnableWithMessageHistory(
+            current_chain,
+            get_session_history,
+            input_messages_key='my_msg'
+        )
         
         # 处理消息
         response = do_message.invoke(
@@ -86,11 +100,13 @@ def chat_with_model(message: str, session_id: str, language: str = '中文', mod
 
 def chat_with_deepseek(message: str, session_id: str, language: str = '中文'):
     """专门使用 DeepSeek 模型的聊天函数"""
-    return chat_with_model(message, session_id, language, 'deepseek')
+    # 注意：这里的api_key需要从配置或者db中获取，目前只是示例
+    return chat_with_model(message, session_id, language, 'deepseek', api_key=settings.MODEL_API_KEY)
 
 def chat_with_zhipu(message: str, session_id: str, language: str = '中文'):
     """专门使用智谱 AI 模型的聊天函数"""
-    return chat_with_model(message, session_id, language, 'zhipu')
+    # 注意：这里的api_key需要从配置或者db中获取，目前只是示例
+    return chat_with_model(message, session_id, language, 'zhipu', api_key=settings.MODEL_API_KEY)
 
 # 示例调用
 if __name__ == "__main__":
