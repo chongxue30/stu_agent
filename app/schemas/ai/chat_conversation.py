@@ -16,8 +16,17 @@ class ChatConversationBase(BaseModel):
 class ChatConversationCreate(ChatConversationBase):
     pass
 
-class ChatConversationUpdate(ChatConversationBase):
+class ChatConversationUpdate(BaseModel):
     id: int = Field(..., description="对话ID")
+    role_id: Optional[int] = Field(None, description="聊天角色ID")
+    title: Optional[str] = Field(None, description="对话标题")
+    model_id: Optional[int] = Field(None, description="模型编号")
+    model: Optional[str] = Field(None, description="模型标识")
+    pinned: Optional[bool] = Field(None, description="是否置顶")
+    system_message: Optional[str] = Field(None, description="角色设定")
+    temperature: Optional[float] = Field(None, description="温度参数")
+    max_tokens: Optional[int] = Field(None, description="单条回复的最大 Token 数量")
+    max_contexts: Optional[int] = Field(None, description="上下文的最大 Message 数量")
 
 class ChatConversationResp(ChatConversationBase, BaseResp):
     user_id: Optional[int] = Field(None, description="用户编号")
