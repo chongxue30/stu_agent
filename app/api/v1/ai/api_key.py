@@ -71,7 +71,7 @@ def get_api_key(
 
 @router.get("/simple-list", response_model=ResponseModel[List[ApiKeyResp]])
 def get_simple_list(
-    status: int = 0,
+    status: int = 1,
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user_id)
 ):
