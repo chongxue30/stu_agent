@@ -10,6 +10,9 @@ from app.schemas.common.response import ResponseModel, PageResult
 from typing import List
 from fastapi.responses import StreamingResponse
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/chat-message", tags=["AI聊天消息管理"])
 
@@ -20,7 +23,10 @@ def send_message(
     user_id: int = Depends(get_current_user_id)
 ):
     """发送消息并获取AI回复"""
-    return ChatMessageService.send_message(db=db, message_in=message_in, user_id=user_id)
+    logger.info(f"/chat-message/send 入参: conversation_id={message_in.conversation_id}, user_id={user_id}, role_id={message_in.role_id}, use_context={message_in.use_context}")
+    resp = ChatMessageService.send_message(db=db, message_in=message_in, user_id=user_id)
+    logger.info(f"/chat-message/send 出参: ok, conversation_id={message_in.conversation_id}")
+    return resp
 
 @router.post("/send-stream")
 def send_message_stream(

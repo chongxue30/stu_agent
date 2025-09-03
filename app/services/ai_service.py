@@ -1,4 +1,4 @@
-from app.services.chat.chat import chat_with_model, chat_with_deepseek, chat_with_zhipu
+from app.services.chat.chat import chat_with_model, chat_with_zhipu
 from fastapi import HTTPException
 import traceback
 
@@ -10,7 +10,7 @@ def ai_support(question: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def chat_service(message: str, session_id: str, model_type: str = 'deepseek'):
+def chat_service(message: str, session_id: str, model_type: str = 'zhipu'):
     """
     聊天服务，支持选择不同的模型
     
@@ -24,15 +24,12 @@ def chat_service(message: str, session_id: str, model_type: str = 'deepseek'):
         if not isinstance(message, str):
             raise ValueError("Input message must be a string.")
         
-        # 根据模型类型选择对应的聊天函数
-        if model_type.lower() == 'deepseek':
-            response = chat_with_deepseek(message, session_id)
-            print(f"DeepSeek 聊天响应: {response}")
-        elif model_type.lower() == 'zhipu':
+        # 根据模型类型选择对应的聊天函数（目前统一走 zhipu 风格）
+        if model_type.lower() == 'zhipu':
             response = chat_with_zhipu(message, session_id)
             print(f"智谱 AI 聊天响应: {response}")
         else:
-            # 默认使用 DeepSeek
+            # 默认使用 zhipu
             response = chat_with_model(message, session_id, model_type=model_type)
             print(f"默认模型聊天响应: {response}")
         
@@ -57,8 +54,8 @@ def chat_service(message: str, session_id: str, model_type: str = 'deepseek'):
             return f"处理消息时发生错误: {str(e)}"
 
 def chat_with_deepseek_service(message: str, session_id: str):
-    """专门使用 DeepSeek 模型的聊天服务"""
-    return chat_service(message, session_id, 'deepseek')
+    """兼容旧接口：DeepSeek 路由暂时复用 zhipu 流程"""
+    return chat_service(message, session_id, 'zhipu')
 
 def chat_with_zhipu_service(message: str, session_id: str):
     """专门使用智谱 AI 模型的聊天服务"""

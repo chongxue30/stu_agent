@@ -21,7 +21,7 @@ async def generate_sql_endpoint(question: str):
 async def chat_endpoint(
     message: str, 
     session_id: str, 
-    model_type: str = Query(default="deepseek", description="模型类型: deepseek 或 zhipu")
+    model_type: str = Query(default="zhipu", description="模型类型: zhipu")
 ):
     try:
         # 调用 chat_service 并传递 message、session_id 和 model_type
@@ -33,12 +33,12 @@ async def chat_endpoint(
         # 捕获其他异常并返回 HTTP 错误
         raise HTTPException(status_code=500, detail=str(e))
 
-# 专门使用 DeepSeek 模型的聊天接口
+# 兼容旧接口：DeepSeek 路由复用 zhipu 流程
 @router.post("/chat/deepseek")
 async def chat_deepseek_endpoint(message: str, session_id: str):
     try:
         result = chat_with_deepseek_service(message, session_id)
-        return {"response": result, "model_type": "deepseek"}
+        return {"response": result, "model_type": "zhipu"}
     except HTTPException as e:
         raise e
     except Exception as e:
