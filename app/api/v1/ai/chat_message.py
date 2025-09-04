@@ -63,11 +63,11 @@ def send_message_stream(
     )
     
     def generate_stream():
+        full_response = ""
         try:
             from app.services.ai.chat import ChatService
-            # 流式获取AI回复
-            full_response = ""
-            for chunk in ChatService.stream_ai_response(
+            # 获取AI回复的完整内容
+            complete_ai_response = ChatService.stream_ai_response(
                 db=db,
                 conversation_id=message_in.conversation_id,
                 user_message=message_in.content,
@@ -77,30 +77,38 @@ def send_message_stream(
                 max_tokens=db_conversation.max_tokens,
                 use_context=message_in.use_context,
                 max_contexts=db_conversation.max_contexts
-            ):
-                full_response += chunk
-                # 发送SSE格式的数据
-                yield f"data: {json.dumps({'content': chunk, 'type': 'chunk'})}\n\n"
-            
-            # 创建AI回复消息
-            ai_msg = chat_message.create_ai_message(
-                db=db,
-                conversation_id=message_in.conversation_id,
-                user_id=user_id,
-                content=full_response,
-                model_id=db_conversation.model_id,
-                model=db_conversation.model,
-                reply_id=user_msg.id,
-                role_id=db_conversation.role_id
             )
             
-            # 发送完成信号
-            yield f"data: {json.dumps({'content': '', 'type': 'done', 'message_id': ai_msg.id})}\n\n"
+            # 将完整的响应拆分成小块进行流式发送
+            chunk_size = 10 # 可以调整这个块大小
+            for i in range(0, len(complete_ai_response), chunk_size):
+                chunk = complete_ai_response[i:i+chunk_size]
+                full_response += chunk # 累积完整的响应
+                # 发送SSE格式的数据
+                yield f"data: {json.dumps({'content': chunk, 'type': 'chunk'})}\n\n"
             
         except Exception as e:
             # 如果AI回复失败，删除用户消息
             chat_message.remove(db, id=user_msg.id)
-            yield f"data: {json.dumps({'error': str(e), 'type': 'error'})}\n\n"
+            error_msg = f"AI回复失败: {str(e)}"
+            logger.error(error_msg, exc_info=True)
+            yield f"data: {json.dumps({'error': error_msg, 'type': 'error'})}\n\n"
+            return # 退出生成器
+        
+        # 在流式响应结束后，创建AI回复消息
+        ai_msg = chat_message.create_ai_message(
+            db=db,
+            conversation_id=message_in.conversation_id,
+            user_id=user_id,
+            content=full_response,
+            model_id=db_conversation.model_id,
+            model=db_conversation.model,
+            reply_id=user_msg.id,
+            role_id=db_conversation.role_id
+        )
+        
+        # 发送完成信号
+        yield f"data: {json.dumps({'content': '', 'type': 'done', 'message_id': ai_msg.id})}\n\n"
     
     return StreamingResponse(
         generate_stream(),

@@ -6,6 +6,9 @@ from langchain_core.messages import HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnableWithMessageHistory
 from fastapi import APIRouter, HTTPException
+from sqlalchemy.orm import Session # 导入 Session
+from app.crud.ai.chat_message import chat_message as chat_message_crud # 导入 CRUD
+from langchain_core.messages import AIMessage, SystemMessage # 导入 LangChain 消息类型
 
 # 初始化 ZhipuAI 客户端
 client = ZhipuAI(api_key=settings.MODEL_API_KEY)
@@ -23,13 +26,23 @@ prompt_template = ChatPromptTemplate.from_messages([
 zhipu_chain = prompt_template | zhipu_model
 
 # 保存聊天的历史记录
-store = {}  # 所有用户的聊天记录都保存到store。key: sessionId,value: 历史聊天记录对象
+# store = {}  # 所有用户的聊天记录都保存到store。key: sessionId,value: 历史聊天记录对象
 
-# 获取会话历史记录
-def get_session_history(session_id: str):
-    if session_id not in store:
-        store[session_id] = ChatMessageHistory()
-    return store[session_id]
+# 获取会话历史记录 (从数据库加载)
+def get_session_history(db: Session, session_id: str, max_contexts: int) -> ChatMessageHistory:
+    history = ChatMessageHistory()
+    # 从数据库加载历史消息
+    messages = chat_message_crud.get_context_messages(db, conversation_id=int(session_id), max_contexts=max_contexts)
+    
+    for msg in reversed(messages): # LangChain 历史通常是按时间顺序的，所以反转一下
+        if msg.type == "user":
+            history.add_user_message(msg.content)
+        elif msg.type == "assistant":
+            history.add_ai_message(msg.content)
+        elif msg.type == "system": # 系统消息也作为历史的一部分
+            history.add_message(SystemMessage(content=msg.content))
+            
+    return history
 
 # 定义消息处理 - 智谱 AI
 do_message_zhipu = RunnableWithMessageHistory(
