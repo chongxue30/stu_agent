@@ -24,6 +24,16 @@ class ModelFactory:
             "default_url": "https://open.bigmodel.cn/api/paas/v4",
             "default_model": "glm-4"
         },
+        "tongyi": {
+            "model_class": ChatOpenAI,
+            "default_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+            "default_model": "qwen-plus"
+        },
+        "TongYi": {
+            "model_class": ChatOpenAI,
+            "default_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+            "default_model": "qwen-plus"
+        },
         "openai": {
             "model_class": ChatOpenAI,
             "default_url": "https://api.openai.com/v1",
@@ -37,7 +47,7 @@ class ModelFactory:
         根据平台创建或获取聊天模型实例（参考芋道项目模式）
         
         Args:
-            platform: 平台名称 (deepseek, zhipu, openai)
+            platform: 平台名称 (支持任意平台，优先使用数据库配置)
             api_key: API密钥
             url: API地址（可选，使用默认值）
             model_name: 模型名称（可选，使用默认值）
@@ -48,12 +58,18 @@ class ModelFactory:
         platform_lower = platform.lower()
         platform_config = cls.PLATFORM_CONFIGS.get(platform_lower)
         
-        if not platform_config:
-            raise ValueError(f"Unsupported platform: {platform}")
-        
-        # 使用传入的URL或默认URL
-        base_url = url or platform_config["default_url"]
-        model = model_name or platform_config["default_model"]
+        # 优先使用传入的参数，其次使用配置中的默认值
+        if platform_config:
+            base_url = url or platform_config["default_url"]
+            model = model_name or platform_config["default_model"]
+        else:
+            # 如果平台不在配置中，使用传入的参数
+            base_url = url
+            model = model_name
+            
+            # 如果都没有提供，给出友好的错误提示
+            if not base_url or not model:
+                raise ValueError(f"平台 {platform} 未在配置中定义，请确保数据库中的API密钥和模型配置完整")
         
         logger.info(f"创建 {platform} 模型实例: model={model}, base_url={base_url}")
         
